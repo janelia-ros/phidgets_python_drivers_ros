@@ -6,30 +6,52 @@ from Phidget22.Devices.DigitalInput import *
 from .PhidgetHelperFunctions import *
 
 class Joint:
-    ACCELERATION = 100000
-    VELOCITY_LIMIT = 20000
-    HOME_VELOCITY_LIMIT = 1000
-    HOME_TARGET_POSITION = -10000
-    CURRENT_LIMIT = 0.3
-    HOLDING_CURRENT_LIMIT = 0.5
-    ATTACHMENT_TIMEOUT = 5000
+    def __init__(self, name, parameters, logger, publish_joint_state):
+        self._name = name
+        self._parameters = parameters
+        self._set_logger(logger)
 
-    def __init__(self, stepper_channel_info, home_switch_channel_info, name):
-        self.name = name
+        self._stepper_channel_info = ChannelInfo()
+        self._stepper_channel_info.deviceSerialNumber = Phidget.ANY_SERIAL_NUMBER
+        self._stepper_channel_info.isHubPortDevice = False
+        self._stepper_channel_info.channel = 0
+        self._stepper_channel_info.isVint = True
+        self._stepper_channel_info.netInfo.isRemote = False
+
+        self._home_switch_channel_info = ChannelInfo()
+        self._home_switch_channel_info.deviceSerialNumber = Phidget.ANY_SERIAL_NUMBER
+        self._home_switch_channel_info.isHubPortDevice = True
+        self._home_switch_channel_info.channel = 0
+        self._home_switch_channel_info.isVINT = True
+        self._home_switch_channel_info.netInfo.isRemote = False
+
+        self._stepper_channel_info.hubPort = parameters['stepper_hub_port']
+        self._home_switch_channel_info.hubPort = parameters['switch_hub_port']
+
+        self._disable_inverse_direction()
+        try:
+            if parameters['invert_direction']:
+                self._enable_inverse_direction()
+        except KeyError:
+            pass
+
         try:
             self._stepper = Stepper()
             self._home_switch = DigitalInput()
         except PhidgetException as e:
             DisplayError(e)
             raise
-        self._logger = None
-        self._setup_channel(self._stepper, stepper_channel_info)
-        self._setup_channel(self._home_switch, home_switch_channel_info)
 
-    def set_logger(self, logger):
+        self._setup_channel(self._stepper, self._stepper_channel_info)
+        self._setup_channel(self._home_switch, self._home_switch_channel_info)
+
+        self._set_publish_joint_state(publish_joint_state)
+        self._open_channels_wait_for_attachment()
+
+    def _set_logger(self, logger):
         self._logger = logger
 
-    def set_publish_joint_state(self, publish_joint_state):
+    def _set_publish_joint_state(self, publish_joint_state):
         self._publish_joint_state = publish_joint_state
         self._stepper.setOnPositionChangeHandler(publish_joint_state)
         self._stepper.setOnVelocityChangeHandler(publish_joint_state)
@@ -41,14 +63,14 @@ class Joint:
             channel = ph.getChannel()
             hub_port = ph.getHubPort()
             if ph.getIsHubPortDevice():
-                msg = 'home switch {0} attached on hub port {1} on serial number {2}'.format(self.name, hub_port, serial_number)
+                msg = 'home switch {0} attached on hub port {1} on serial number {2}'.format(self._name, hub_port, serial_number)
                 self._logger.info(msg)
             else:
-                msg = 'stepper {0} attached on hub port {1} on serial number {2}'.format(self.name, hub_port, serial_number)
+                msg = 'stepper {0} attached on hub port {1} on serial number {2}'.format(self._name, hub_port, serial_number)
                 self._logger.info(msg)
 
             try:
-                ph.setDataInterval(100)
+                ph.setDataInterval(self._parameters['data_interval'])
             except AttributeError:
                 pass
             except PhidgetException as e:
@@ -66,10 +88,10 @@ class Joint:
             serial_number = ph.getDeviceSerialNumber()
             channel = ph.getChannel()
             if ph.getIsHubPortDevice():
-                msg = 'home switch {0} detached on hub port {1} on serial number {2}'.format(self.name, hub_port, serial_number)
+                msg = 'home switch {0} detached on hub port {1} on serial number {2}'.format(self._name, hub_port, serial_number)
                 self._logger.info(msg)
             else:
-                msg = 'stepper {0} detached on hub port {1} on serial number {2}'.format(self.name, hub_port, serial_number)
+                msg = 'stepper {0} detached on hub port {1} on serial number {2}'.format(self._name, hub_port, serial_number)
                 self._logger.info(msg)
 
         except PhidgetException as e:
@@ -90,53 +112,84 @@ class Joint:
         channel.setOnDetachHandler(self._on_detach_handler)
         channel.setOnErrorHandler(self._on_error_handler)
 
-    def open_wait_for_attachment(self):
-        self._stepper.openWaitForAttachment(self.ATTACHMENT_TIMEOUT)
-        self._home_switch.openWaitForAttachment(self.ATTACHMENT_TIMEOUT)
+    def _open_channels_wait_for_attachment(self):
+        self._stepper.openWaitForAttachment(self._parameters['attachment_timeout'])
+        self._home_switch.openWaitForAttachment(self._parameters['attachment_timeout'])
         self._setup()
 
     def _setup(self):
-        self._stepper.setAcceleration(self.ACCELERATION)
-        self._stepper.setCurrentLimit(self.CURRENT_LIMIT)
-        self._stepper.setVelocityLimit(self.VELOCITY_LIMIT)
-        self._stepper.setHoldingCurrentLimit(self.HOLDING_CURRENT_LIMIT)
+        self.set_rescale_factor(self._parameters['rescale_factor'])
+        self.set_acceleration(self._parameters['acceleration'])
+        self.set_current_limit(self._parameters['current_limit'])
+        self.set_velocity_limit(self._parameters['velocity_limit'])
+        self.set_holding_current_limit(self._parameters['holding_current_limit'])
         self.enable()
+
+    def _enable_inverse_direction(self):
+        self._direction = -1
+
+    def _disable_inverse_direction(self):
+        self._direction = 1
 
     def home(self):
         if self._home_switch.getState():
-            self._stepper.setVelocityLimit(self.HOME_VELOCITY_LIMIT)
-            self._stepper.setTargetPosition(self.HOME_TARGET_POSITION)
+            self.set_velocity_limit(self._parameters['home_velocity_limit'])
+            self.set_target_position(self._parameters['home_target_position'])
             while self._home_switch.getState():
                 pass
-            self._stepper.setVelocityLimit(0.0)
-            self._stepper.addPositionOffset(-self._stepper.getPosition())
-            self._stepper.setTargetPosition(0.0)
+            self.set_velocity_limit(0.0)
+            self.add_position_offset(-self._stepper.getPosition())
+            self.set_target_position(0.0)
             self._publish_joint_state(None,None)
-            self._stepper.setVelocityLimit(self.VELOCITY_LIMIT)
-        self._logger.info('{0} homed'.format(self.name))
+            self.set_velocity_limit(self._parameters['velocity_limit'])
+        self._logger.info('{0} homed'.format(self._name))
 
     def close(self):
         self._stepper.setOnPositionChangeHandler(None)
         self._stepper.close()
         self._home_switch.close()
 
-    def get_rescale_factor(self):
-            try:
-                rescale_factor = self._stepper.getRescaleFactor()
-                self._logger.info('rescale_factor: {0}'.format(rescale_factor))
-            except PhidgetException as e:
-                DisplayError(e)
-                return
-        # return self._stepper.getRescaleFactor()
+    def get_acceleration(self):
+        return self._stepper.getAcceleration()
 
-    def set_rescale_factor(self, rescale_factor):
-        self._stepper.setRescaleFactor(rescale_factor)
+    def set_acceleration(self, acceleration):
+        self._stepper.setAcceleration(acceleration)
+
+    def get_min_acceleration(self):
+        return self._stepper.getMinAcceleration()
+
+    def get_max_acceleration(self):
+        return self._stepper.getMaxAcceleration()
+
+    def step_control_mode(self):
+        return self._stepper.getControlMode() == StepperControlMode.CONTROL_MODE_STEP
+
+    def set_step_control_mode(self):
+        self._stepper.setControlMode(StepperControlMode.CONTROL_MODE_STEP)
+
+    def get_current_limit(self):
+        return self._stepper.getCurrentLimit()
+
+    def set_current_limit(self, current_limit):
+        self._stepper.setCurrentLimit(current_limit)
+
+    def get_holding_current_limit(self):
+        return self._stepper.getHoldingCurrentLimit()
+
+    def set_holding_current_limit(self, holding_current_limit):
+        self._stepper.setHoldingCurrentLimit(holding_current_limit)
+
+    def get_is_moving(self):
+        return self._stepper.getIsMoving()
 
     def get_position(self):
-        return self._stepper.getPosition()
+        return self._direction * self._stepper.getPosition()
 
-    def get_velocity(self):
-        return self._stepper.getVelocity()
+    def set_target_position(self, target_position):
+        self._stepper.setTargetPosition(self._direction * target_position)
+
+    def add_position_offset(self, position_offset):
+        self._stepper.addPositionOffset(position_offset)
 
     def enable(self):
         self._stepper.setEngaged(True)
@@ -144,8 +197,14 @@ class Joint:
     def disable(self):
         self._stepper.setEngaged(False)
 
-    def set_target_position(self, target_position):
-        self._stepper.setTargetPosition(target_position)
+    def get_velocity(self):
+        return self._stepper.getVelocity()
 
     def set_velocity_limit(self, velocity_limit):
         self._stepper.setVelocityLimit(velocity_limit)
+
+    def set_rescale_factor(self, rescale_factor):
+        self._stepper.setRescaleFactor(rescale_factor)
+
+    def get_rescale_factor(self):
+        return self._stepper.getRescaleFactor()
