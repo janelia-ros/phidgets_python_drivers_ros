@@ -5,18 +5,37 @@ from Phidget22.Devices.DigitalInput import *
 
 from .PhidgetHelperFunctions import *
 
+class StepperInfo():
+    def __init__(self):
+        self.channel_info = ChannelInfo()
+        self.channel_info.deviceSerialNumber = Phidget.ANY_SERIAL_NUMBER
+        self.channel_info.isHubPortDevice = False
+        self.channel_info.channel = 0
+        self.channel_info.isVint = True
+        self.channel_info.netInfo.isRemote = False
+
+class JointInfo():
+    def __init__(self):
+        self.stepper_hub_port = 0
+        self.switch_hub_port = 1
+        self.attachment_timeout = 5000
+        self.data_interval = 100
+        self.acceleration = 10000
+        self.velocity_limit = 0000
+        self.home_velocity_limit = 1000
+        self.home_target_position = -10000
+        self.current_limit = 0.1
+        self.holding_current_limit = 0.0
+        self.rescale_factor = 1.0
+        self.invert_direction = False
+
 class Joint:
-    def __init__(self, name, parameters, logger, publish_joint_state):
+    def __init__(self, name, joint_info, logger, publish_joint_state):
         self._name = name
-        self._parameters = parameters
+        self._joint_info = joint_info
         self._set_logger(logger)
 
         self._stepper_channel_info = ChannelInfo()
-        self._stepper_channel_info.deviceSerialNumber = Phidget.ANY_SERIAL_NUMBER
-        self._stepper_channel_info.isHubPortDevice = False
-        self._stepper_channel_info.channel = 0
-        self._stepper_channel_info.isVint = True
-        self._stepper_channel_info.netInfo.isRemote = False
 
         self._home_switch_channel_info = ChannelInfo()
         self._home_switch_channel_info.deviceSerialNumber = Phidget.ANY_SERIAL_NUMBER
@@ -25,15 +44,13 @@ class Joint:
         self._home_switch_channel_info.isVINT = True
         self._home_switch_channel_info.netInfo.isRemote = False
 
-        self._stepper_channel_info.hubPort = parameters['stepper_hub_port']
-        self._home_switch_channel_info.hubPort = parameters['switch_hub_port']
+        self._stepper_channel_info.hubPort = joint_info.stepper_hub_port
+        self._home_switch_channel_info.hubPort = joint_info.switch_hub_port
 
-        self._disable_inverse_direction()
-        try:
-            if parameters['invert_direction']:
-                self._enable_inverse_direction()
-        except KeyError:
-            pass
+        if not joint_info.invert_direction:
+            self._disable_inverse_direction()
+        else:
+            self._enable_inverse_direction()
 
         try:
             self._stepper = Stepper()
@@ -70,7 +87,7 @@ class Joint:
                 self._logger.info(msg)
 
             try:
-                ph.setDataInterval(self._parameters['data_interval'])
+                ph.setDataInterval(self._joint_info.data_interval)
             except AttributeError:
                 pass
             except PhidgetException as e:
@@ -113,16 +130,16 @@ class Joint:
         channel.setOnErrorHandler(self._on_error_handler)
 
     def _open_channels_wait_for_attachment(self):
-        self._stepper.openWaitForAttachment(self._parameters['attachment_timeout'])
-        self._home_switch.openWaitForAttachment(self._parameters['attachment_timeout'])
+        self._stepper.openWaitForAttachment(self._joint_info.attachment_timeout)
+        self._home_switch.openWaitForAttachment(self._joint_info.attachment_timeout)
         self._setup()
 
     def _setup(self):
-        self.set_rescale_factor(self._parameters['rescale_factor'])
-        self.set_acceleration(self._parameters['acceleration'])
-        self.set_current_limit(self._parameters['current_limit'])
-        self.set_velocity_limit(self._parameters['velocity_limit'])
-        self.set_holding_current_limit(self._parameters['holding_current_limit'])
+        self.set_rescale_factor(self._joint_info.rescale_factor)
+        self.set_acceleration(self._joint_info.acceleration)
+        self.set_current_limit(self._joint_info.current_limit)
+        self.set_velocity_limit(self._joint_info.velocity_limit)
+        self.set_holding_current_limit(self._joint_info.holding_current_limit)
         self.enable()
 
     def _enable_inverse_direction(self):
@@ -133,15 +150,15 @@ class Joint:
 
     def home(self):
         if self._home_switch.getState():
-            self.set_velocity_limit(self._parameters['home_velocity_limit'])
-            self.set_target_position(self._parameters['home_target_position'])
+            self.set_velocity_limit(self._joint_info.home_velocity_limit)
+            self.set_target_position(self._joint_info.home_target_position)
             while self._home_switch.getState():
                 pass
             self.set_velocity_limit(0.0)
             self.add_position_offset(-self._stepper.getPosition())
             self.set_target_position(0.0)
             self._publish_joint_state(None,None)
-            self.set_velocity_limit(self._parameters['velocity_limit'])
+            self.set_velocity_limit(self._joint_info.velocity_limit)
         self._logger.info('{0} homed'.format(self._name))
 
     def close(self):
