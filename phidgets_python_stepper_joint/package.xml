@@ -1,9 +1,9 @@
 <?xml version="1.0"?>
 <?xml-model href="http://download.ros.org/schema/package_format3.xsd" schematypens="http://www.w3.org/2001/XMLSchema"?>
 <package format="3">
-  <name>phidgets_python_interface</name>
+  <name>phidgets_python_stepper_joint</name>
   <version>0.0.0</version>
-  <description>Phidgets Python ROS interface</description>
+  <description>Phidgets Python Stepper Joint ROS interface</description>
 
   <maintainer email="peterpolidoro@gmail.com">Peter Polidoro</maintainer>
 

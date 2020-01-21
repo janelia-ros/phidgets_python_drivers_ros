@@ -1,6 +1,6 @@
 from setuptools import setup
 
-package_name = 'phidgets_python_interface'
+package_name = 'phidgets_python_stepper_joint'
 
 setup(
     name=package_name,
@@ -24,12 +24,12 @@ setup(
         'Programming Language :: Python',
         'Topic :: Software Development',
     ],
-    description='Phidgets Python ROS interface.',
+    description='Phidgets Python Stepper Joint ROS interface.',
     license='BSD',
     tests_require=['pytest'],
     entry_points={
         'console_scripts': [
-            'test_node = phidgets_python_interface.test_node:main'
+            'test_node = phidgets_python_stepper_joint.test_node:main'
         ],
     },
 )
