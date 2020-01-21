@@ -1,5 +1,4 @@
 import Phidget22.Phidget
-import Phidget22.PhidgetException
 
 import .PhidgetHelperFunctions
 
@@ -16,63 +15,35 @@ class Phidget:
     def __init__(self, channel_info):
         self._channel_info = channel_info
 
-    def _open_wait_for_attachment(self, handle):
+    def open_wait_for_attachment(self, handle):
         handle.setDeviceSerialNumber(self._channel_info.serial_number)
         handle.setDeviceLabel(self._channel_info.label)
-        handle.setHubPort(self._channel_info.hubPort)
-        handle.setIsHubPortDevice(self._channel_info.isHubPortDevice)
         handle.setChannel(self._channel_info.channel)
+        handle.setHubPort(self._channel_info.hub_port)
+        handle.setIsHubPortDevice(self._channel_info.is_hub_port_device)
 
-        self._stepper.openWaitForAttachment(self._stepper_info.attachment_timeout)
+        handle.openWaitForAttachment(self._channel_info.timeout)
 
-    def _setup_channel(self, channel, info):
+        self._channel_info.serial_number = handle.getDeviceSerialNumber()
+        self._channel_info.label = handle.getDeviceLabel()
+        self._channel_info.channel = handle.getChannel()
+        self._channel_info.hub_port = handle.getHubPort()
+        self._channel_info.is_hub_port_device = handle.getIsHubPortDevice()
 
-        channel.setOnAttachHandler(self._on_attach_handler)
-        channel.setOnDetachHandler(self._on_detach_handler)
-        channel.setOnErrorHandler(self._on_error_handler)
+    def close(self, handle):
+        handle.close()
 
-    def _on_attach_handler(self, ph):
-        try:
-            channel_class_name = ph.getChannelClassName()
-            serial_number = ph.getDeviceSerialNumber()
-            channel = ph.getChannel()
-            hub_port = ph.getHubPort()
-            if ph.getIsHubPortDevice():
-                msg = 'home switch {0} attached on hub port {1} on serial number {2}'.format(self._name, hub_port, serial_number)
-                self._logger.info(msg)
-            else:
-                msg = 'stepper {0} attached on hub port {1} on serial number {2}'.format(self._name, hub_port, serial_number)
-                self._logger.info(msg)
+    def get_channel_info(self):
+        return self._channel_info
 
-            try:
-                ph.setDataInterval(self._stepper_info.data_interval)
-            except AttributeError:
-                pass
-            except PhidgetException as e:
-                DisplayError(e)
-                return
+    # void onAttach(self)
+    def set_on_attach_handler(self, handle, on_attach_handler):
+        handle.setOnAttachHandler(on_attach_handler)
 
-        except PhidgetException as e:
-            DisplayError(e)
-            traceback.print_exc()
-            return
+    # void onDetach(self)
+    def set_on_detach_handler(self, handle, on_detach_handler):
+        handle.setOnDetachHandler(on_detach_handler)
 
-    def _on_detach_handler(self, ph):
-        try:
-            channel_class_name = ph.getChannelClassName()
-            serial_number = ph.getDeviceSerialNumber()
-            channel = ph.getChannel()
-            if ph.getIsHubPortDevice():
-                msg = 'home switch {0} detached on hub port {1} on serial number {2}'.format(self._name, hub_port, serial_number)
-                self._logger.info(msg)
-            else:
-                msg = 'stepper {0} detached on hub port {1} on serial number {2}'.format(self._name, hub_port, serial_number)
-                self._logger.info(msg)
-
-        except PhidgetException as e:
-            DisplayError(e)
-            traceback.print_exc()
-            return
-
-    def _on_error_handler(self, ph, error_code, error_string):
-        self._logger.error('[Phidget Error Event] -> ' + error_string + ' (' + str(error_code) + ')\n')
+    # void onError(self, code, description)
+    def set_on_error_handler(self, handle, on_error_handler):
+        handle.setOnErrorHandler(on_error_handler)

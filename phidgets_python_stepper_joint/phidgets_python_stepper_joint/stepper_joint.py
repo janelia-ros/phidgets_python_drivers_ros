@@ -1,33 +1,14 @@
-from Phidget22.Phidget import *
-from Phidget22.PhidgetException import *
-from Phidget22.Devices.Stepper import *
+# from Phidget22.Phidget import *
+# from Phidget22.PhidgetException import *
+# from Phidget22.Devices.Stepper import *
 from Phidget22.Devices.DigitalInput import *
 
-from .PhidgetHelperFunctions import *
-
-class StepperInfo():
-    def __init__(self):
-        self.channel_info = ChannelInfo()
-        self.channel_info.deviceSerialNumber = Phidget.ANY_SERIAL_NUMBER
-        self.channel_info.isHubPortDevice = False
-        self.channel_info.channel = 0
-        self.channel_info.isVint = True
-        self.channel_info.netInfo.isRemote = False
+from phidget_python_api.stepper import Stepper, StepperInfo
 
 class JointInfo():
     def __init__(self):
-        self.stepper_hub_port = 0
-        self.switch_hub_port = 1
-        self.attachment_timeout = 5000
-        self.data_interval = 100
-        self.acceleration = 10000
-        self.velocity_limit = 0000
-        self.home_velocity_limit = 1000
-        self.home_target_position = -10000
-        self.current_limit = 0.1
-        self.holding_current_limit = 0.0
-        self.rescale_factor = 1.0
-        self.invert_direction = False
+        self.stepper_info = StepperInfo()
+        # self.digital_input_info = DigitalInputInfo()
 
 class Joint:
     def __init__(self, name, joint_info, logger, publish_joint_state):
@@ -165,63 +146,3 @@ class Joint:
         self._stepper.setOnPositionChangeHandler(None)
         self._stepper.close()
         self._home_switch.close()
-
-    def get_acceleration(self):
-        return self._stepper.getAcceleration()
-
-    def set_acceleration(self, acceleration):
-        self._stepper.setAcceleration(acceleration)
-
-    def get_min_acceleration(self):
-        return self._stepper.getMinAcceleration()
-
-    def get_max_acceleration(self):
-        return self._stepper.getMaxAcceleration()
-
-    def step_control_mode(self):
-        return self._stepper.getControlMode() == StepperControlMode.CONTROL_MODE_STEP
-
-    def set_step_control_mode(self):
-        self._stepper.setControlMode(StepperControlMode.CONTROL_MODE_STEP)
-
-    def get_current_limit(self):
-        return self._stepper.getCurrentLimit()
-
-    def set_current_limit(self, current_limit):
-        self._stepper.setCurrentLimit(current_limit)
-
-    def get_holding_current_limit(self):
-        return self._stepper.getHoldingCurrentLimit()
-
-    def set_holding_current_limit(self, holding_current_limit):
-        self._stepper.setHoldingCurrentLimit(holding_current_limit)
-
-    def get_is_moving(self):
-        return self._stepper.getIsMoving()
-
-    def get_position(self):
-        return self._direction * self._stepper.getPosition()
-
-    def set_target_position(self, target_position):
-        self._stepper.setTargetPosition(self._direction * target_position)
-
-    def add_position_offset(self, position_offset):
-        self._stepper.addPositionOffset(position_offset)
-
-    def enable(self):
-        self._stepper.setEngaged(True)
-
-    def disable(self):
-        self._stepper.setEngaged(False)
-
-    def get_velocity(self):
-        return self._stepper.getVelocity()
-
-    def set_velocity_limit(self, velocity_limit):
-        self._stepper.setVelocityLimit(velocity_limit)
-
-    def set_rescale_factor(self, rescale_factor):
-        self._stepper.setRescaleFactor(rescale_factor)
-
-    def get_rescale_factor(self):
-        return self._stepper.getRescaleFactor()
