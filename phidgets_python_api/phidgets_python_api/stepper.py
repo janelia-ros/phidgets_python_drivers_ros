@@ -28,13 +28,11 @@
 from Phidget22.PhidgetException import *
 import Phidget22.Devices.Stepper
 
-import .PhidgetHelperFunctions
-
-from phidget_python_api.phidget import Phidget, ChannelInfo
+from phidgets_python_api.phidget import Phidget, PhidgetInfo
 
 class StepperInfo():
     def __init__(self):
-        self.channel_info = ChannelInfo()
+        self.phidget_info = PhidgetInfo()
         self.data_interval = 100
         self.rescale_factor = 1.0
         self.acceleration = 10000
@@ -47,16 +45,16 @@ class StepperInfo():
 
 class Stepper(Phidget):
     def __init__(self, stepper_info):
-        super().__init__(stepper_info.channel_info)
+        super().__init__(stepper_info.phidget_info)
         self._stepper_info = stepper_info
 
         try:
-            self._handle = Phidget22.Devices.Stepper()
+            self._handle = Phidget22.Devices.Stepper.Stepper()
         except PhidgetException as e:
             DisplayError(e)
             raise
 
-        open_wait_for_attachment(self._handle)
+        self.open_wait_for_attachment(self._handle)
         self._setup()
 
     def _setup(self):
@@ -66,7 +64,7 @@ class Stepper(Phidget):
         self.set_current_limit(self._stepper_info.current_limit)
         self.set_holding_current_limit(self._stepper_info.holding_current_limit)
         self.set_velocity_limit(self._stepper_info.velocity_limit)
-        if not stepper_info.invert_direction:
+        if not self._stepper_info.invert_direction:
             self._direction = 1
         else:
             self._direction = -1
@@ -79,15 +77,15 @@ class Stepper(Phidget):
         self.set_on_stopped_handler(None)
         super().close(self._handle)
 
-    # void onPositionChange(self, position)
+    # def on_position_change_handler(self, position):
     def set_on_position_change_handler(self, on_position_change_handler):
         self._handle.setOnPositionChangeHandler(on_position_change_handler)
 
-    # void onVelocityChange(self, velocity)
+    # def on_velocity_change_handler(self, velocity):
     def set_on_velocity_change_handler(self, on_velocity_change_handler):
         self._handle.setOnVelocityChangeHandler(on_velocity_change_handler)
 
-    # void onStopped(self)
+    # def on_stopped_handler(self):
     def set_on_stopped_handler(self, on_stopped_handler):
         self._handle.setOnStoppedHandler(on_stopped_handler)
 
@@ -155,7 +153,7 @@ class Stepper(Phidget):
         return self._direction * self._handle.getPosition()
 
     def add_position_offset(self, position_offset):
-        self._handle.addPositionOffset(position_offset)
+        self._handle.addPositionOffset(self._direction * position_offset)
 
     def get_rescale_factor(self):
         return self._handle.getRescaleFactor()
@@ -170,7 +168,7 @@ class Stepper(Phidget):
         self._handle.setTargetPosition(self._direction * target_position)
 
     def get_velocity(self):
-        return self._handle.getVelocity()
+        return self._direction * self._handle.getVelocity()
 
     def set_velocity_limit(self, velocity_limit):
         self._handle.setVelocityLimit(velocity_limit)

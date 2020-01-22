@@ -25,8 +25,8 @@
 # ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 # POSSIBILITY OF SUCH DAMAGE.
 
-from phidget_python_api.stepper import Stepper, StepperInfo
-from phidget_python_api.digital_input import DigitalInput, DigitalInputInfo
+from phidgets_python_api.stepper import Stepper, StepperInfo
+from phidgets_python_api.digital_input import DigitalInput, DigitalInputInfo
 
 class StepperJointInfo():
     def __init__(self):
@@ -42,15 +42,15 @@ class StepperJoint:
         self._stepper_joint_info = stepper_joint_info
 
     def home(self):
-        if self.home_switch.getState():
+        if self.home_switch.get_state():
             self.stepper.set_velocity_limit(self._stepper_joint_info.home_velocity_limit)
             self.stepper.set_target_position(self._stepper_joint_info.home_target_position)
-            while self.home_switch.getState():
+            while self.home_switch.get_state():
                 pass
-            self.stepper.set_velocity_limit(0.0)
-            self.stepper.add_position_offset(-self.stepper.get_position())
-            self.stepper.set_target_position(0.0)
-            self.stepper.set_velocity_limit(self._stepper_joint_info.stepper_info.velocity_limit)
+        self.stepper.set_velocity_limit(0.0)
+        self.stepper.add_position_offset(-self.stepper.get_position())
+        self.stepper.set_target_position(0.0)
+        self.stepper.set_velocity_limit(self._stepper_joint_info.stepper_info.velocity_limit)
 
     def close(self):
         self.stepper.close()
