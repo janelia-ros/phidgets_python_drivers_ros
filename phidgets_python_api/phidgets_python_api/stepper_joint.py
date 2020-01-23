@@ -76,3 +76,4 @@ class StepperJoint:
             self.stepper.set_velocity_limit(self._stepper_joint_info.stepper_info.velocity_limit)
             self.homed = True
             self.homing = False
+            self.logger.info('{0} homed'.format(self.name))

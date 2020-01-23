@@ -27,10 +27,6 @@
 
 import Phidget22.Phidget
 
-class EndProgramSignal(Exception):
-    def __init__(self, value):
-        self.value = str(value )
-
 class PhidgetInfo():
     def __init__(self):
         self.serial_number = Phidget22.Phidget.Phidget.ANY_SERIAL_NUMBER
