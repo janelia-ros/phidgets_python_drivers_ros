@@ -41,8 +41,10 @@ class PhidgetInfo():
         self.timeout = Phidget22.Phidget.Phidget.DEFAULT_TIMEOUT
 
 class Phidget:
-    def __init__(self, phidget_info):
+    def __init__(self, phidget_info, name, logger):
         self._phidget_info = phidget_info
+        self.name = name
+        self.logger = logger
 
     def open_wait_for_attachment(self, handle):
         handle.setDeviceSerialNumber(self._phidget_info.serial_number)
@@ -59,6 +61,12 @@ class Phidget:
         self._phidget_info.channel = handle.getChannel()
         self._phidget_info.hub_port = handle.getHubPort()
         self._phidget_info.is_hub_port_device = handle.getIsHubPortDevice()
+        if self._phidget_info.label:
+            msg = '{0} -> label: {1.label}, hub_port: {1.hub_port}'
+        else:
+            msg = '{0} -> serial_number: {1.serial_number}, hub_port: {1.hub_port}'
+        msg = msg.format(self.name, self._phidget_info)
+        self.logger.info(msg)
 
     def close(self, handle):
         handle.close()

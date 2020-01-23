@@ -36,22 +36,43 @@ class StepperJointInfo():
         self.home_target_position = -10000
 
 class StepperJoint:
-    def __init__(self, stepper_joint_info):
-        self.stepper = Stepper(stepper_joint_info.stepper_info)
-        self.home_switch = DigitalInput(stepper_joint_info.home_switch_info)
+    def __init__(self, stepper_joint_info, name, logger):
         self._stepper_joint_info = stepper_joint_info
+        self.name = name
+        self.logger = logger
 
-    def home(self):
-        if self.home_switch.get_state():
-            self.stepper.set_velocity_limit(self._stepper_joint_info.home_velocity_limit)
-            self.stepper.set_target_position(self._stepper_joint_info.home_target_position)
-            while self.home_switch.get_state():
-                pass
-        self.stepper.set_velocity_limit(0.0)
-        self.stepper.add_position_offset(-self.stepper.get_position())
-        self.stepper.set_target_position(0.0)
-        self.stepper.set_velocity_limit(self._stepper_joint_info.stepper_info.velocity_limit)
+        self.stepper = Stepper(stepper_joint_info.stepper_info, name + '_stepper', logger)
+        self.home_switch = DigitalInput(stepper_joint_info.home_switch_info, name + '_home_switch', logger)
+
+        self._setup()
+
+    def _setup(self):
+        self.home_switch.set_on_state_change_handler(self._home)
+        self.homed = False
+        self.homing = False
+        self.home()
 
     def close(self):
         self.stepper.close()
         self.home_switch.close()
+
+    def home_switch_pressed(self):
+        return not self.home_switch.get_state()
+
+    def home(self):
+        if not self.home_switch_pressed():
+            self.homed = False
+            self.homing = True
+            self.stepper.set_velocity_limit(self._stepper_joint_info.home_velocity_limit)
+            self.stepper.set_target_position(self._stepper_joint_info.home_target_position)
+        else:
+            self._home(self.home_switch, False)
+
+    def _home(self, handle, state):
+        if self.home_switch_pressed():
+            self.stepper.set_velocity_limit(0.0)
+            self.stepper.add_position_offset(-self.stepper.get_position())
+            self.stepper.set_target_position(0.0)
+            self.stepper.set_velocity_limit(self._stepper_joint_info.stepper_info.velocity_limit)
+            self.homed = True
+            self.homing = False

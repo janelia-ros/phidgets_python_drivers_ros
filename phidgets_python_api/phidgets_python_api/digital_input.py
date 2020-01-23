@@ -36,8 +36,8 @@ class DigitalInputInfo():
         self.phidget_info.is_hub_port_device = True
 
 class DigitalInput(Phidget):
-    def __init__(self, digital_input_info):
-        super().__init__(digital_input_info.phidget_info)
+    def __init__(self, digital_input_info, name, logger):
+        super().__init__(digital_input_info.phidget_info, name, logger)
         self._digital_input_info = digital_input_info
 
         try:
