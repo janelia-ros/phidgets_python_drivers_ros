@@ -46,25 +46,25 @@ class StepperInfo():
 class Stepper(Phidget):
     def __init__(self, stepper_info, name, logger):
         super().__init__(stepper_info.phidget_info, name, logger)
-        self._stepper_info = stepper_info
+        self.stepper_info = stepper_info
 
         try:
             self._handle = Phidget22.Devices.Stepper.Stepper()
         except PhidgetException as e:
-            DisplayError(e)
+            self._handle = None
             raise
 
         self.open_wait_for_attachment(self._handle)
         self._setup()
 
     def _setup(self):
-        self.set_data_interval(self._stepper_info.data_interval)
-        self.set_rescale_factor(self._stepper_info.rescale_factor)
-        self.set_acceleration(self._stepper_info.acceleration)
-        self.set_current_limit(self._stepper_info.current_limit)
-        self.set_holding_current_limit(self._stepper_info.holding_current_limit)
-        self.set_velocity_limit(self._stepper_info.velocity_limit)
-        if not self._stepper_info.invert_direction:
+        self.set_data_interval(self.stepper_info.data_interval)
+        self.set_rescale_factor(self.stepper_info.rescale_factor)
+        self.set_acceleration(self.stepper_info.acceleration)
+        self.set_current_limit(self.stepper_info.current_limit)
+        self.set_holding_current_limit(self.stepper_info.holding_current_limit)
+        self.set_velocity_limit(self.stepper_info.velocity_limit)
+        if not self.stepper_info.invert_direction:
             self._direction = 1
         else:
             self._direction = -1
@@ -75,17 +75,18 @@ class Stepper(Phidget):
         self.set_on_position_change_handler(None)
         self.set_on_velocity_change_handler(None)
         self.set_on_stopped_handler(None)
+        self.disable()
         super().close(self._handle)
 
-    # def on_position_change_handler(self, position):
+    # def on_position_change_handler(self, handle, position):
     def set_on_position_change_handler(self, on_position_change_handler):
         self._handle.setOnPositionChangeHandler(on_position_change_handler)
 
-    # def on_velocity_change_handler(self, velocity):
+    # def on_velocity_change_handler(self, handle, velocity):
     def set_on_velocity_change_handler(self, on_velocity_change_handler):
         self._handle.setOnVelocityChangeHandler(on_velocity_change_handler)
 
-    # def on_stopped_handler(self):
+    # def on_stopped_handler(self, handle):
     def set_on_stopped_handler(self, on_stopped_handler):
         self._handle.setOnStoppedHandler(on_stopped_handler)
 

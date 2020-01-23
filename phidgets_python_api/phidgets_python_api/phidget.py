@@ -25,7 +25,8 @@
 # ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 # POSSIBILITY OF SUCH DAMAGE.
 
-import Phidget22.Phidget
+import Phidget22
+from Phidget22.PhidgetException import *
 
 class PhidgetInfo():
     def __init__(self):
@@ -38,46 +39,55 @@ class PhidgetInfo():
 
 class Phidget:
     def __init__(self, phidget_info, name, logger):
-        self._phidget_info = phidget_info
+        self.phidget_info = phidget_info
         self.name = name
         self.logger = logger
+        self._handle = None
+
+    def is_handle(self, handle):
+        return self._handle == handle
 
     def open_wait_for_attachment(self, handle):
-        handle.setDeviceSerialNumber(self._phidget_info.serial_number)
-        if self._phidget_info.label:
-            handle.setDeviceLabel(self._phidget_info.label)
-        handle.setChannel(self._phidget_info.channel)
-        handle.setHubPort(self._phidget_info.hub_port)
-        handle.setIsHubPortDevice(self._phidget_info.is_hub_port_device)
+        if handle is None:
+            return
 
-        handle.openWaitForAttachment(self._phidget_info.timeout)
+        handle.setDeviceSerialNumber(self.phidget_info.serial_number)
+        if self.phidget_info.label:
+            handle.setDeviceLabel(self.phidget_info.label)
+        handle.setChannel(self.phidget_info.channel)
+        handle.setHubPort(self.phidget_info.hub_port)
+        handle.setIsHubPortDevice(self.phidget_info.is_hub_port_device)
 
-        self._phidget_info.serial_number = handle.getDeviceSerialNumber()
-        self._phidget_info.label = handle.getDeviceLabel()
-        self._phidget_info.channel = handle.getChannel()
-        self._phidget_info.hub_port = handle.getHubPort()
-        self._phidget_info.is_hub_port_device = handle.getIsHubPortDevice()
-        if self._phidget_info.label:
+        handle.openWaitForAttachment(self.phidget_info.timeout)
+
+        self.phidget_info.serial_number = handle.getDeviceSerialNumber()
+        self.phidget_info.label = handle.getDeviceLabel()
+        self.phidget_info.channel = handle.getChannel()
+        self.phidget_info.hub_port = handle.getHubPort()
+        self.phidget_info.is_hub_port_device = handle.getIsHubPortDevice()
+
+        if self.phidget_info.label:
             msg = '{0} -> label: {1.label}, hub_port: {1.hub_port}'
         else:
             msg = '{0} -> serial_number: {1.serial_number}, hub_port: {1.hub_port}'
-        msg = msg.format(self.name, self._phidget_info)
+        msg = msg.format(self.name, self.phidget_info)
         self.logger.info(msg)
 
     def close(self, handle):
-        handle.close()
+        if handle is not None:
+            handle.close()
 
-    def get_phidget_info(self):
-        return self._phidget_info
-
-    # def on_attach_handler(self):
+    # def on_attach_handler(self, handle):
     def set_on_attach_handler(self, handle, on_attach_handler):
-        handle.setOnAttachHandler(on_attach_handler)
+        if handle is not None:
+            handle.setOnAttachHandler(on_attach_handler)
 
-    # def on_detach_handler(self):
+    # def on_detach_handler(self, handle):
     def set_on_detach_handler(self, handle, on_detach_handler):
-        handle.setOnDetachHandler(on_detach_handler)
+        if handle is not None:
+            handle.setOnDetachHandler(on_detach_handler)
 
-    # def on_error_handler(self, code, description):
+    # def on_error_handler(self, handle, code, description):
     def set_on_error_handler(self, handle, on_error_handler):
-        handle.setOnErrorHandler(on_error_handler)
+        if handle is not None:
+            handle.setOnErrorHandler(on_error_handler)
