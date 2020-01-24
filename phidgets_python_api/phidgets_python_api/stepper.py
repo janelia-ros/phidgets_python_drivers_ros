@@ -46,8 +46,12 @@ class StepperInfo():
 class Stepper(Phidget):
     def __init__(self, stepper_info, name, logger):
         super().__init__(stepper_info.phidget_info, name, logger)
+
         self.stepper_info = stepper_info
 
+        self._setup_stepper()
+
+    def _setup_stepper(self):
         try:
             self._handle = Phidget22.Devices.Stepper.Stepper()
         except PhidgetException as e:
@@ -55,9 +59,7 @@ class Stepper(Phidget):
             raise
 
         self.open_wait_for_attachment(self._handle)
-        self._setup()
 
-    def _setup(self):
         self.set_data_interval(self.stepper_info.data_interval)
         self.set_rescale_factor(self.stepper_info.rescale_factor)
         self.set_acceleration(self.stepper_info.acceleration)
@@ -147,7 +149,7 @@ class Stepper(Phidget):
     def set_holding_current_limit(self, holding_current_limit):
         self._handle.setHoldingCurrentLimit(holding_current_limit)
 
-    def get_is_moving(self):
+    def is_moving(self):
         return self._handle.getIsMoving()
 
     def get_position(self):

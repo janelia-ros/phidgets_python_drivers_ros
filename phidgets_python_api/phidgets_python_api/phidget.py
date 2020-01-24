@@ -42,10 +42,17 @@ class Phidget:
         self.phidget_info = phidget_info
         self.name = name
         self.logger = logger
+
+        self._setup_phidget()
+
+    def _setup_phidget(self):
         self._handle = None
 
     def is_handle(self, handle):
         return self._handle == handle
+
+    def get_handle(self):
+        return self._handle
 
     def open_wait_for_attachment(self, handle):
         if handle is None:

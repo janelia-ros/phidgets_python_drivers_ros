@@ -39,8 +39,12 @@ class DigitalInputInfo():
 class DigitalInput(Phidget):
     def __init__(self, digital_input_info, name, logger):
         super().__init__(digital_input_info.phidget_info, name, logger)
+
         self.digital_input_info = digital_input_info
 
+        self._setup_digital_input()
+
+    def _setup_digital_input(self):
         try:
             self._handle = Phidget22.Devices.DigitalInput.DigitalInput()
         except PhidgetException as e:
@@ -48,10 +52,6 @@ class DigitalInput(Phidget):
             raise
 
         self.open_wait_for_attachment(self._handle)
-        self._setup()
-
-    def _setup(self):
-        pass
 
     def close(self):
         self.set_on_state_change_handler(None)
