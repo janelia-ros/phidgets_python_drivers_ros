@@ -63,8 +63,7 @@ class StepperJoint:
         self.home_switch.set_on_state_change_handler(self._home_switch_handler)
         self.homed = False
         self.homing = False
-        if self.limit_switch is not None:
-            self.limit_switch.set_on_state_change_handler(self._limit_switch_handler)
+        self.set_limit_switch_to_stop()
 
     def close(self):
         self.stepper.close()
@@ -83,7 +82,7 @@ class StepperJoint:
 
     def _home_switch_handler(self, handle, state):
         if self.home_switch.is_active():
-            self.stepper.set_velocity_limit(0.0)
+            self.stepper.stop()
             self.stepper.add_position_offset(-self.stepper.get_position())
             self.stepper.set_target_position(0.0)
             self.stepper.set_velocity_limit(self.stepper_joint_info.stepper_info.velocity_limit)
@@ -91,7 +90,11 @@ class StepperJoint:
             self.homing = False
             self.logger.info('{0} homed'.format(self.name))
 
-    def _limit_switch_handler(self, handle, state):
+    def _stop_handler(self, handle, state):
         if (self.limit_switch is not None) and self.limit_switch.is_active():
-            self.stepper.set_velocity_limit(0.0)
+            self.stepper.stop()
             self.logger.info('{0} limit switch is active'.format(self.name))
+
+    def set_limit_switch_to_stop(self):
+        if self.limit_switch is not None:
+            self.limit_switch.set_on_state_change_handler(self._stop_handler)

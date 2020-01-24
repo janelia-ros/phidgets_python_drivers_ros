@@ -181,3 +181,6 @@ class Stepper(Phidget):
 
     def get_max_velocity_limit(self):
         return self._handle.getMaxVelocityLimit()
+
+    def stop(self):
+        self.set_velocity_limit(0.0)
