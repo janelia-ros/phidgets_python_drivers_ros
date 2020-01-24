@@ -36,6 +36,7 @@ class StepperJointInfo():
         self.limit_switch_info = None
         self.home_velocity_limit = 1000
         self.home_target_position = -10000
+        self.deactivate_home_switch_target_position = 200
 
 class StepperJoint:
     def __init__(self, stepper_joint_info, name, logger):
@@ -63,7 +64,7 @@ class StepperJoint:
         self.home_switch.set_on_state_change_handler(self._home_switch_handler)
         self.homed = False
         self.homing = False
-        self.set_limit_switch_to_stop()
+        self.set_limit_switch_to_disabled()
 
     def close(self):
         self.stepper.close()
@@ -72,13 +73,14 @@ class StepperJoint:
             self.limit_switch.close()
 
     def home(self):
+        self.homed = False
+        self.homing = True
+        self.stepper.set_velocity_limit(self.stepper_joint_info.home_velocity_limit)
         if not self.home_switch.is_active():
-            self.homed = False
-            self.homing = True
-            self.stepper.set_velocity_limit(self.stepper_joint_info.home_velocity_limit)
             self.stepper.set_target_position(self.stepper_joint_info.home_target_position)
         else:
-            self._home_switch_handler(self.home_switch, False)
+            self.stepper.set_target_position(self.stepper_joint_info.deactivate_home_switch_target_position)
+            self.home()
 
     def _home_switch_handler(self, handle, state):
         if self.home_switch.is_active():
@@ -88,13 +90,15 @@ class StepperJoint:
             self.stepper.set_velocity_limit(self.stepper_joint_info.stepper_info.velocity_limit)
             self.homed = True
             self.homing = False
-            self.logger.info('{0} homed'.format(self.name))
 
     def _stop_handler(self, handle, state):
         if (self.limit_switch is not None) and self.limit_switch.is_active():
             self.stepper.stop()
-            self.logger.info('{0} limit switch is active'.format(self.name))
 
     def set_limit_switch_to_stop(self):
         if self.limit_switch is not None:
             self.limit_switch.set_on_state_change_handler(self._stop_handler)
+
+    def set_limit_switch_to_disabled(self):
+        if self.limit_switch is not None:
+            self.limit_switch.set_on_state_change_handler(None)
