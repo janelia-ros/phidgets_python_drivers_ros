@@ -140,7 +140,7 @@ class Stepper(Phidget):
     def disable(self):
         self._handle.setEngaged(False)
 
-    def enabled(self):
+    def is_enabled(self):
         return self._handle.getEngaged()
 
     def get_holding_current_limit(self):

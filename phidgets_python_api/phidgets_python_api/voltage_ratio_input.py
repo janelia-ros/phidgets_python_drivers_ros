@@ -84,7 +84,7 @@ class VoltageRatioInput(Phidget):
     def disable(self):
         self._handle.setBridgeEnabled(False)
 
-    def enabled(self):
+    def is_enabled(self):
         return self._handle.getBridgeEnabled()
 
     def set_bridge_gain(self, bridge_gain):
