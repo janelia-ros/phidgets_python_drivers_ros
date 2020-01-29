@@ -47,12 +47,11 @@ class StepperJoint:
         self._setup_stepper_joint()
 
     def _setup_stepper_joint(self):
+        self.stepper = Stepper(self.stepper_joint_info.stepper_info, self.name + '_stepper', self.logger)
         try:
-            self.stepper = Stepper(self.stepper_joint_info.stepper_info, self.name + '_stepper', self.logger)
             self.home_switch = DigitalInput(self.stepper_joint_info.home_switch_info, self.name + '_home_switch', self.logger)
         except PhidgetException as e:
             self.stepper.close()
-            self.home_switch.close()
             raise
 
         if self.stepper_joint_info.limit_switch_info is not None:
@@ -64,7 +63,7 @@ class StepperJoint:
         self.home_switch.set_on_state_change_handler(self._home_switch_handler)
         self.homed = False
         self.homing = False
-        self.set_limit_switch_to_disabled()
+        self.set_limit_switch_handler_to_disabled()
 
     def close(self):
         self.stepper.close()
