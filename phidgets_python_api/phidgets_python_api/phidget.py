@@ -35,7 +35,6 @@ class PhidgetInfo():
         self.channel = Phidget22.Phidget.Phidget.ANY_CHANNEL
         self.hub_port = Phidget22.Phidget.Phidget.ANY_HUB_PORT
         self.is_hub_port_device = False
-        self.timeout = Phidget22.Phidget.Phidget.DEFAULT_TIMEOUT
 
 class Phidget:
     def __init__(self, phidget_info, name, logger):
@@ -43,35 +42,42 @@ class Phidget:
         self.name = name
         self.logger = logger
 
-        self._setup_phidget()
+        self._phidget_handle = None
 
-    def _setup_phidget(self):
-        self._handle = None
+    def get_phidget_handle(self):
+        return self._phidget_handle
 
-    def is_handle(self, handle):
-        return self._handle == handle
+    def set_phidget_handle(self, phidget_handle):
+        self._phidget_handle = phidget_handle
 
-    def get_handle(self):
-        return self._handle
+    def open(self, phidget_handle):
+        self._phidget_handle =
+        self.set_on_attach_handler(self._on_attach_handler)
 
-    def open_wait_for_attachment(self, handle):
-        if handle is None:
-            return
-
-        handle.setDeviceSerialNumber(self.phidget_info.serial_number)
+        self._phidget_handle.setDeviceSerialNumber(self.phidget_info.serial_number)
         if self.phidget_info.label:
-            handle.setDeviceLabel(self.phidget_info.label)
-        handle.setChannel(self.phidget_info.channel)
-        handle.setHubPort(self.phidget_info.hub_port)
-        handle.setIsHubPortDevice(self.phidget_info.is_hub_port_device)
+            self._phidget_handle.setDeviceLabel(self.phidget_info.label)
+        self._phidget_handle.setChannel(self.phidget_info.channel)
+        self._phidget_handle.setHubPort(self.phidget_info.hub_port)
+        self._phidget_handle.setIsHubPortDevice(self.phidget_info.is_hub_port_device)
 
-        handle.openWaitForAttachment(self.phidget_info.timeout)
+        self._phidget_handle.open()
 
-        self.phidget_info.serial_number = handle.getDeviceSerialNumber()
-        self.phidget_info.label = handle.getDeviceLabel()
-        self.phidget_info.channel = handle.getChannel()
-        self.phidget_info.hub_port = handle.getHubPort()
-        self.phidget_info.is_hub_port_device = handle.getIsHubPortDevice()
+    def close(self):
+        if self._phidget_handle is not None:
+            self._phidget_handle.close()
+
+    def is_attached(self):
+        if self._phidget_handle is None:
+            return False
+        return self._phidget_handle.getAttached()
+
+    def _on_attach_handler(self, handle):
+        self.phidget_info.serial_number = self._phidget_handle.getDeviceSerialNumber()
+        self.phidget_info.label = self._phidget_handle.getDeviceLabel()
+        self.phidget_info.channel = self._phidget_handle.getChannel()
+        self.phidget_info.hub_port = self._phidget_handle.getHubPort()
+        self.phidget_info.is_hub_port_device = self._phidget_handle.getIsHubPortDevice()
 
         if self.phidget_info.label:
             msg = '{0} -> label: {1.label}, hub_port: {1.hub_port}'
@@ -80,21 +86,17 @@ class Phidget:
         msg = msg.format(self.name, self.phidget_info)
         self.logger.info(msg)
 
-    def close(self, handle):
-        if handle is not None:
-            handle.close()
-
     # def on_attach_handler(self, handle):
-    def set_on_attach_handler(self, handle, on_attach_handler):
-        if handle is not None:
-            handle.setOnAttachHandler(on_attach_handler)
+    def set_on_attach_handler(self, on_attach_handler):
+        if self._phidget_handle is not None:
+            self._phidget_handle.setOnAttachHandler(on_attach_handler)
 
     # def on_detach_handler(self, handle):
-    def set_on_detach_handler(self, handle, on_detach_handler):
-        if handle is not None:
-            handle.setOnDetachHandler(on_detach_handler)
+    def set_on_detach_handler(self, on_detach_handler):
+        if self._phidget_handle is not None:
+            self._phidget_handle.setOnDetachHandler(on_detach_handler)
 
     # def on_error_handler(self, handle, code, description):
-    def set_on_error_handler(self, handle, on_error_handler):
-        if handle is not None:
-            handle.setOnErrorHandler(on_error_handler)
+    def set_on_error_handler(self, on_error_handler):
+        if self._phidget_handle is not None:
+            self._phidget_handle.setOnErrorHandler(on_error_handler)

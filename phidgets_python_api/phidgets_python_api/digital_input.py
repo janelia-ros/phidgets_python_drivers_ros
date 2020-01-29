@@ -39,30 +39,27 @@ class DigitalInputInfo():
 class DigitalInput(Phidget):
     def __init__(self, digital_input_info, name, logger):
         super().__init__(digital_input_info.phidget_info, name, logger)
-
         self.digital_input_info = digital_input_info
 
-        self._setup_digital_input()
+        self.open(Phidget22.Devices.DigitalInput.DigitalInput())
 
-    def _setup_digital_input(self):
-        try:
-            self._handle = Phidget22.Devices.DigitalInput.DigitalInput()
-        except PhidgetException as e:
-            self._handle = None
-            raise
+    def open(self, digital_input_handle):
+        super().open(digital_input_handle)
+        self._digital_input_handle = digital_input_handle
 
-        self.open_wait_for_attachment(self._handle)
+    def _on_attach_handler(self, handle):
+        super()._on_attach_handler(handle)
 
     def close(self):
         self.set_on_state_change_handler(None)
-        super().close(self._handle)
+        super().close()
 
     # def on_state_change_handler(self, handle, state):
     def set_on_state_change_handler(self, on_state_change_handler):
-        self._handle.setOnStateChangeHandler(on_state_change_handler)
+        self._digital_input_handle.setOnStateChangeHandler(on_state_change_handler)
 
     def get_state(self):
-        return self._handle.getState()
+        return self._digital_input_handle.getState()
 
     def is_active(self):
         if self.digital_input_info.active_low:

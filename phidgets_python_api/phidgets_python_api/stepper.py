@@ -46,20 +46,18 @@ class StepperInfo():
 class Stepper(Phidget):
     def __init__(self, stepper_info, name, logger):
         super().__init__(stepper_info.phidget_info, name, logger)
-
         self.stepper_info = stepper_info
 
-        self._setup_stepper()
+        self._set_handle(Phidget22.Devices.Stepper.Stepper())
+        self.set_on_attach_handler(self._on_attach_handler)
+        self.open()
 
-    def _setup_stepper(self):
-        try:
-            self._handle = Phidget22.Devices.Stepper.Stepper()
-        except PhidgetException as e:
-            self._handle = None
-            raise
+    def _set_handle(self, stepper_handle):
+        super().set_handle(stepper_handle)
+        self._stepper_handle = stepper_handle
 
-        self.open_wait_for_attachment(self._handle)
-
+    def _on_attach_handler(self, handle):
+        super()._on_attach_handler(handle)
         self.set_data_interval(self.stepper_info.data_interval)
         self.set_rescale_factor(self.stepper_info.rescale_factor)
         self.set_acceleration(self.stepper_info.acceleration)
@@ -78,109 +76,109 @@ class Stepper(Phidget):
         self.set_on_velocity_change_handler(None)
         self.set_on_stopped_handler(None)
         self.disable()
-        super().close(self._handle)
+        super().close()
 
     # def on_position_change_handler(self, handle, position):
     def set_on_position_change_handler(self, on_position_change_handler):
-        self._handle.setOnPositionChangeHandler(on_position_change_handler)
+        self._stepper_handle.setOnPositionChangeHandler(on_position_change_handler)
 
     # def on_velocity_change_handler(self, handle, velocity):
     def set_on_velocity_change_handler(self, on_velocity_change_handler):
-        self._handle.setOnVelocityChangeHandler(on_velocity_change_handler)
+        self._stepper_handle.setOnVelocityChangeHandler(on_velocity_change_handler)
 
     # def on_stopped_handler(self, handle):
     def set_on_stopped_handler(self, on_stopped_handler):
-        self._handle.setOnStoppedHandler(on_stopped_handler)
+        self._stepper_handle.setOnStoppedHandler(on_stopped_handler)
 
     def get_acceleration(self):
-        return self._handle.getAcceleration()
+        return self._stepper_handle.getAcceleration()
 
     def set_acceleration(self, acceleration):
-        self._handle.setAcceleration(acceleration)
+        self._stepper_handle.setAcceleration(acceleration)
 
     def get_min_acceleration(self):
-        return self._handle.getMinAcceleration()
+        return self._stepper_handle.getMinAcceleration()
 
     def get_max_acceleration(self):
-        return self._handle.getMaxAcceleration()
+        return self._stepper_handle.getMaxAcceleration()
 
     def step_control_mode(self):
-        return self._handle.getControlMode() == StepperControlMode.CONTROL_MODE_STEP
+        return self._stepper_handle.getControlMode() == StepperControlMode.CONTROL_MODE_STEP
 
     def set_step_control_mode(self):
-        self._handle.setControlMode(StepperControlMode.CONTROL_MODE_STEP)
+        self._stepper_handle.setControlMode(StepperControlMode.CONTROL_MODE_STEP)
 
     def get_current_limit(self):
-        return self._handle.getCurrentLimit()
+        return self._stepper_handle.getCurrentLimit()
 
     def set_current_limit(self, current_limit):
-        self._handle.setCurrentLimit(current_limit)
+        self._stepper_handle.setCurrentLimit(current_limit)
 
     def get_min_current_limit(self):
-        return self._handle.getMinCurrentLimit()
+        return self._stepper_handle.getMinCurrentLimit()
 
     def get_max_current_limit(self):
-        return self._handle.getMinCurrentLimit()
+        return self._stepper_handle.getMinCurrentLimit()
 
     def get_data_interval(self):
-        return self._handle.getDataInterval()
+        return self._stepper_handle.getDataInterval()
 
     def set_data_interval(self, data_interval):
-        self._handle.setDataInterval(data_interval)
+        self._stepper_handle.setDataInterval(data_interval)
 
     def get_min_data_interval(self):
-        return self._handle.getMinDataInterval()
+        return self._stepper_handle.getMinDataInterval()
 
     def get_max_data_interval(self):
-        return self._handle.getMaxDataInterval()
+        return self._stepper_handle.getMaxDataInterval()
 
     def enable(self):
-        self._handle.setEngaged(True)
+        self._stepper_handle.setEngaged(True)
 
     def disable(self):
-        self._handle.setEngaged(False)
+        self._stepper_handle.setEngaged(False)
 
     def is_enabled(self):
-        return self._handle.getEngaged()
+        return self._stepper_handle.getEngaged()
 
     def get_holding_current_limit(self):
-        return self._handle.getHoldingCurrentLimit()
+        return self._stepper_handle.getHoldingCurrentLimit()
 
     def set_holding_current_limit(self, holding_current_limit):
-        self._handle.setHoldingCurrentLimit(holding_current_limit)
+        self._stepper_handle.setHoldingCurrentLimit(holding_current_limit)
 
     def is_moving(self):
-        return self._handle.getIsMoving()
+        return self._stepper_handle.getIsMoving()
 
     def get_position(self):
-        return self._direction * self._handle.getPosition()
+        return self._direction * self._stepper_handle.getPosition()
 
     def add_position_offset(self, position_offset):
-        self._handle.addPositionOffset(self._direction * position_offset)
+        self._stepper_handle.addPositionOffset(self._direction * position_offset)
 
     def get_rescale_factor(self):
-        return self._handle.getRescaleFactor()
+        return self._stepper_handle.getRescaleFactor()
 
     def set_rescale_factor(self, rescale_factor):
-        self._handle.setRescaleFactor(rescale_factor)
+        self._stepper_handle.setRescaleFactor(rescale_factor)
 
     def get_target_position(self):
-        return self._direction * self._handle.getTargetPosition()
+        return self._direction * self._stepper_handle.getTargetPosition()
 
     def set_target_position(self, target_position):
-        self._handle.setTargetPosition(self._direction * target_position)
+        self._stepper_handle.setTargetPosition(self._direction * target_position)
 
     def get_velocity(self):
-        return self._direction * self._handle.getVelocity()
+        return self._direction * self._stepper_handle.getVelocity()
 
     def set_velocity_limit(self, velocity_limit):
-        self._handle.setVelocityLimit(velocity_limit)
+        self._stepper_handle.setVelocityLimit(velocity_limit)
 
     def get_min_velocity_limit(self):
-        return self._handle.getMinVelocityLimit()
+        return self._stepper_handle.getMinVelocityLimit()
 
     def get_max_velocity_limit(self):
-        return self._handle.getMaxVelocityLimit()
+        return self._stepper_handle.getMaxVelocityLimit()
 
     def stop(self):
         self.set_velocity_limit(0.0)

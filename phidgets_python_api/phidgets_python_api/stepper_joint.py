@@ -44,9 +44,6 @@ class StepperJoint:
         self.name = name
         self.logger = logger
 
-        self._setup_stepper_joint()
-
-    def _setup_stepper_joint(self):
         self.stepper = Stepper(self.stepper_joint_info.stepper_info, self.name + '_stepper', self.logger)
         try:
             self.home_switch = DigitalInput(self.stepper_joint_info.home_switch_info, self.name + '_home_switch', self.logger)
