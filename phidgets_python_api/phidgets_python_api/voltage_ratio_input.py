@@ -43,20 +43,17 @@ class VoltageRatioInputInfo():
 class VoltageRatioInput(Phidget):
     def __init__(self, voltage_ratio_input_info, name, logger):
         super().__init__(voltage_ratio_input_info.phidget_info, name, logger)
-
         self.voltage_ratio_input_info = voltage_ratio_input_info
-        self._voltage_ratio_handle = None
 
-        self._setup_voltage_ratio_input()
+        self._set_handle_and_on_attach_handler(Phidget22.Devices.VoltageRatioInput.VoltageRatioInput())
 
-    def _set_voltage_ratio_handle(self, voltage_ratio_handle):
-        self.set_phidget_handle(voltage_ratio_handle)
-        self._voltage_ratio_handle = voltage_ratio_handle
+    def _set_handle_and_on_attach_handler(self, voltage_ratio_input_handle):
+        super()._set_handle_and_on_attach_handler(voltage_ratio_input_handle)
+        self._voltage_ratio_input_handle = voltage_ratio_input_handle
+        self.set_on_attach_handler(self._on_attach_handler)
 
-    def _setup_voltage_ratio_input(self):
-        self._set_voltage_ratio_handle(Phidget22.Devices.VoltageRatioInput.VoltageRatioInput())
-        self.open()
-
+    def _on_attach_handler(self, handle):
+        super()._on_attach_handler(handle)
         self.set_bridge_gain(self.voltage_ratio_info.bridge_gain)
         self.set_data_interval(self.voltage_ratio_info.data_interval)
         self.set_sensor_type(self.voltage_ratio_info.sensor_type)
@@ -70,76 +67,79 @@ class VoltageRatioInput(Phidget):
         self.set_on_voltage_ratio_change_handler(None)
         super().close()
 
+    def has_handle(self, handle):
+        return self._voltage_ratio_input_handle == handle
+
     # def on_sensor_change_handler(self, handle, sensor_value, sensor_unit):
     def set_on_sensor_change_handler(self, on_sensor_change_handler):
-        self._voltage_ratio_handle.setOnSensorChangeHandler(on_sensor_change_handler)
+        self._voltage_ratio_input_handle.setOnSensorChangeHandler(on_sensor_change_handler)
 
     # def on_voltage_ratio_change_handler(self, handle, voltage_ratio):
     def set_on_voltage_ratio_change_handler(self, on_voltage_ratio_change_handler):
-        self._voltage_ratio_handle.setOnVoltageRatioChangeHandler(on_voltage_ratio_change_handler)
+        self._voltage_ratio_input_handle.setOnVoltageRatioChangeHandler(on_voltage_ratio_change_handler)
 
     def enable(self):
-        self._voltage_ratio_handle.setBridgeEnabled(True)
+        self._voltage_ratio_input_handle.setBridgeEnabled(True)
 
     def disable(self):
-        self._voltage_ratio_handle.setBridgeEnabled(False)
+        self._voltage_ratio_input_handle.setBridgeEnabled(False)
 
     def is_enabled(self):
-        return self._voltage_ratio_handle.getBridgeEnabled()
+        return self._voltage_ratio_input_handle.getBridgeEnabled()
 
     def set_bridge_gain(self, bridge_gain):
-        self._voltage_ratio_handle.setBridgeGain(bridge_gain)
+        self._voltage_ratio_input_handle.setBridgeGain(bridge_gain)
 
     def get_gain(self):
-        return self._voltage_ratio_handle.getBridgeGain()
+        return self._voltage_ratio_input_handle.getBridgeGain()
 
     def get_data_interval(self):
-        return self._voltage_ratio_handle.getDataInterval()
+        return self._voltage_ratio_input_handle.getDataInterval()
 
     def set_data_interval(self, data_interval):
-        self._voltage_ratio_handle.setDataInterval(data_interval)
+        self._voltage_ratio_input_handle.setDataInterval(data_interval)
 
     def get_min_data_interval(self):
-        return self._voltage_ratio_handle.getMinDataInterval()
+        return self._voltage_ratio_input_handle.getMinDataInterval()
 
     def get_max_data_interval(self):
-        return self._voltage_ratio_handle.getMaxDataInterval()
+        return self._voltage_ratio_input_handle.getMaxDataInterval()
 
     def get_sensor_type(self):
-        return self._voltage_ratio_handle.getSensorType()
+        return self._voltage_ratio_input_handle.getSensorType()
 
     def set_sensor_type(self, sensor_type):
-        self._voltage_ratio_handle.setSensorType(sensor_type)
+        self._voltage_ratio_input_handle.setSensorType(sensor_type)
 
     def get_sensor_unit(self):
-        return self._voltage_ratio_handle.getSensorUnit()
+        return self._voltage_ratio_input_handle.getSensorUnit()
 
     def get_sensor_value(self):
-        return self._voltage_ratio_handle.getSensorValue()
+        return self._voltage_ratio_input_handle.getSensorValue()
 
     def get_sensor_value_change_trigger(self):
-        return self._voltage_ratio_handle.getSensorValueChangeTrigger()
+        return self._voltage_ratio_input_handle.getSensorValueChangeTrigger()
 
     def set_sensor_value_change_trigger(self, sensor_value_change_trigger):
-        self._voltage_ratio_handle.setSensorValueChangeTrigger(sensor_value_change_trigger)
+        self._voltage_ratio_input_handle.setSensorValueChangeTrigger(sensor_value_change_trigger)
 
     def get_voltage_ratio(self):
-        return self._voltage_ratio_handle.getVoltageRatio()
+        return self._voltage_ratio_input_handle.getVoltageRatio()
 
     def get_min_voltage_ratio(self):
-        return self._voltage_ratio_handle.getMinVoltageRatio()
+        return self._voltage_ratio_input_handle.getMinVoltageRatio()
 
     def get_max_voltage_ratio(self):
-        return self._voltage_ratio_handle.getMaxVoltageRatio()
+        return self._voltage_ratio_input_handle.getMaxVoltageRatio()
 
     def get_voltage_ratio_change_trigger(self):
-        return self._voltage_ratio_handle.getVoltageRatioChangeTrigger()
+        return self._voltage_ratio_input_handle.getVoltageRatioChangeTrigger()
 
     def set_voltage_ratio_change_trigger(self, voltage_ratio_change_trigger):
-        self._voltage_ratio_handle.setVoltageRatioChangeTrigger(voltage_ratio_change_trigger)
+        self._voltage_ratio_input_handle.setVoltageRatioChangeTrigger(voltage_ratio_change_trigger)
 
     def get_min_voltage_ratio_change_trigger(self):
-        return self._voltage_ratio_handle.getMinVoltageRatioChangeTrigger()
+        return self._voltage_ratio_input_handle.getMinVoltageRatioChangeTrigger()
 
     def get_max_voltage_ratio_change_trigger(self):
-        return self._voltage_ratio_handle.getMaxVoltageRatioChangeTrigger()
+        return self._voltage_ratio_input_handle.getMaxVoltageRatioChangeTrigger()

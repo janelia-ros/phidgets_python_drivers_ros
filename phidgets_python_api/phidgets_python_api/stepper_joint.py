@@ -45,28 +45,56 @@ class StepperJoint:
         self.logger = logger
 
         self.stepper = Stepper(self.stepper_joint_info.stepper_info, self.name + '_stepper', self.logger)
-        try:
-            self.home_switch = DigitalInput(self.stepper_joint_info.home_switch_info, self.name + '_home_switch', self.logger)
-        except PhidgetException as e:
-            self.stepper.close()
-            raise
+
+        self.home_switch = DigitalInput(self.stepper_joint_info.home_switch_info, self.name + '_home_switch', self.logger)
+        self.home_switch.set_on_state_change_handler(self._home_switch_handler)
 
         if self.stepper_joint_info.limit_switch_info is not None:
-            try:
-                self.limit_switch = DigitalInput(self.stepper_joint_info.limit_switch_info, self.name + '_limit_switch', self.logger)
-            except PhidgetException as e:
-                self.limit_switch = None
+            self.limit_switch = DigitalInput(self.stepper_joint_info.limit_switch_info, self.name + '_limit_switch', self.logger)
+            self.set_limit_switch_handler_to_disabled()
+        else:
+            self.limit_switch = None
 
-        self.home_switch.set_on_state_change_handler(self._home_switch_handler)
         self.homed = False
         self.homing = False
-        self.set_limit_switch_handler_to_disabled()
+
+    def open(self):
+        self.stepper.open()
+        self.home_switch.open()
+        if self.limit_switch is not None:
+            self.limit_switch.open()
 
     def close(self):
         self.stepper.close()
         self.home_switch.close()
         if self.limit_switch is not None:
             self.limit_switch.close()
+
+    def has_handle(self, handle):
+        if self.limit_switch is not None:
+            if self.limit_switch.has_handle(handle):
+                return True
+        return self.stepper.has_handle(handle) or self.home_switch.has_handle(handle)
+
+    def set_on_attach_handler(self, on_attach_handler):
+        self.stepper.set_on_attach_handler(on_attach_handler)
+        self.home_switch.set_on_attach_handler(on_attach_handler)
+        if self.limit_switch is not None:
+            self.limit_switch.set_on_attach_handler(on_attach_handler)
+
+    def _on_attach_handler(self, handle):
+        if self.stepper.has_handle(handle):
+            self.stepper._on_attach_handler(handle)
+        elif self.home_switch.has_handle(handle):
+            self.home_switch._on_attach_handler(handle)
+        elif self.limit_switch.has_handle(handle):
+            self.limit_switch._on_attach_handler(handle)
+
+    def is_attached(self):
+        if self.limit_switch is not None:
+            return self.stepper.is_attached() and self.home_switch.is_attached() and self.limit_switch.is_attached()
+        else:
+            return self.stepper.is_attached() and self.home_switch.is_attached()
 
     def home(self):
         self.homed = False

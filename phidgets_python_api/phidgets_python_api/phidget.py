@@ -42,18 +42,27 @@ class Phidget:
         self.name = name
         self.logger = logger
 
-        self._phidget_handle = None
+        self._set_handle_and_on_attach_handler(None)
 
-    def get_phidget_handle(self):
-        return self._phidget_handle
-
-    def set_phidget_handle(self, phidget_handle):
+    def _set_handle_and_on_attach_handler(self, phidget_handle):
         self._phidget_handle = phidget_handle
-
-    def open(self, phidget_handle):
-        self._phidget_handle =
         self.set_on_attach_handler(self._on_attach_handler)
 
+    def _on_attach_handler(self, handle):
+        self.phidget_info.serial_number = self._phidget_handle.getDeviceSerialNumber()
+        self.phidget_info.label = self._phidget_handle.getDeviceLabel()
+        self.phidget_info.channel = self._phidget_handle.getChannel()
+        self.phidget_info.hub_port = self._phidget_handle.getHubPort()
+        self.phidget_info.is_hub_port_device = self._phidget_handle.getIsHubPortDevice()
+
+        if self.phidget_info.label:
+            msg = '{0} -> label: {1.label}, hub_port: {1.hub_port}'
+        else:
+            msg = '{0} -> serial_number: {1.serial_number}, hub_port: {1.hub_port}'
+        msg = msg.format(self.name, self.phidget_info)
+        self.logger.info(msg)
+
+    def open(self):
         self._phidget_handle.setDeviceSerialNumber(self.phidget_info.serial_number)
         if self.phidget_info.label:
             self._phidget_handle.setDeviceLabel(self.phidget_info.label)
@@ -71,20 +80,6 @@ class Phidget:
         if self._phidget_handle is None:
             return False
         return self._phidget_handle.getAttached()
-
-    def _on_attach_handler(self, handle):
-        self.phidget_info.serial_number = self._phidget_handle.getDeviceSerialNumber()
-        self.phidget_info.label = self._phidget_handle.getDeviceLabel()
-        self.phidget_info.channel = self._phidget_handle.getChannel()
-        self.phidget_info.hub_port = self._phidget_handle.getHubPort()
-        self.phidget_info.is_hub_port_device = self._phidget_handle.getIsHubPortDevice()
-
-        if self.phidget_info.label:
-            msg = '{0} -> label: {1.label}, hub_port: {1.hub_port}'
-        else:
-            msg = '{0} -> serial_number: {1.serial_number}, hub_port: {1.hub_port}'
-        msg = msg.format(self.name, self.phidget_info)
-        self.logger.info(msg)
 
     # def on_attach_handler(self, handle):
     def set_on_attach_handler(self, on_attach_handler):

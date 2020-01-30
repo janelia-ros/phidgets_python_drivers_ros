@@ -48,13 +48,12 @@ class Stepper(Phidget):
         super().__init__(stepper_info.phidget_info, name, logger)
         self.stepper_info = stepper_info
 
-        self._set_handle(Phidget22.Devices.Stepper.Stepper())
-        self.set_on_attach_handler(self._on_attach_handler)
-        self.open()
+        self._set_handle_and_on_attach_handler(Phidget22.Devices.Stepper.Stepper())
 
-    def _set_handle(self, stepper_handle):
-        super().set_handle(stepper_handle)
+    def _set_handle_and_on_attach_handler(self, stepper_handle):
+        super()._set_handle_and_on_attach_handler(stepper_handle)
         self._stepper_handle = stepper_handle
+        self.set_on_attach_handler(self._on_attach_handler)
 
     def _on_attach_handler(self, handle):
         super()._on_attach_handler(handle)
@@ -77,6 +76,9 @@ class Stepper(Phidget):
         self.set_on_stopped_handler(None)
         self.disable()
         super().close()
+
+    def has_handle(self, handle):
+        return self._stepper_handle == handle
 
     # def on_position_change_handler(self, handle, position):
     def set_on_position_change_handler(self, on_position_change_handler):
