@@ -50,6 +50,8 @@ class Stepper(Phidget):
 
         self._set_handle_and_on_attach_handler(Phidget22.Devices.Stepper.Stepper())
 
+        self._direction = 1
+
     def _set_handle_and_on_attach_handler(self, stepper_handle):
         super()._set_handle_and_on_attach_handler(stepper_handle)
         self._stepper_handle = stepper_handle
@@ -63,9 +65,7 @@ class Stepper(Phidget):
         self.set_current_limit(self.stepper_info.current_limit)
         self.set_holding_current_limit(self.stepper_info.holding_current_limit)
         self.set_velocity_limit(self.stepper_info.velocity_limit)
-        if not self.stepper_info.invert_direction:
-            self._direction = 1
-        else:
+        if self.stepper_info.invert_direction:
             self._direction = -1
 
         self.enable()
