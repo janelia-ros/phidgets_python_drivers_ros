@@ -107,6 +107,9 @@ class StepperJoint:
             self.home()
 
     def _home_switch_handler(self, handle, state):
+        if not self.stepper.is_attached():
+            return
+
         if self.home_switch.is_active():
             self.homed = True
             self.homing = False

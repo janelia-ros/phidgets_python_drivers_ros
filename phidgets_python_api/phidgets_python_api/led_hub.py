@@ -54,7 +54,9 @@ class LedHub:
         [led.close() for led in self.leds]
 
     def has_handle(self, handle):
-        [return True for led in self.leds if led.has_handle(handle)]
+        for led in self.leds:
+            if led.has_handle(handle):
+                return True
         return False
 
     def set_on_attach_handler(self, on_attach_handler):
@@ -64,7 +66,9 @@ class LedHub:
         [led._on_attach_handler(handle) for led in self.leds if led.has_handle(handle)]
 
     def is_attached(self):
-        [return False for led in self.leds if not led.is_attached()]
+        for led in self.leds:
+            if not led.is_attached():
+                return False
         return True
 
     def turn_on_led(self, led_index):
