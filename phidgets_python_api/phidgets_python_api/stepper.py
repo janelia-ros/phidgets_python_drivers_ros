@@ -26,6 +26,7 @@
 # POSSIBILITY OF SUCH DAMAGE.
 
 from Phidget22.PhidgetException import *
+import Phidget22
 import Phidget22.Devices.Stepper
 
 from phidgets_python_api.phidget import Phidget, PhidgetInfo
@@ -50,6 +51,7 @@ class Stepper(Phidget):
 
         self._set_handle_and_on_attach_handler(Phidget22.Devices.Stepper.Stepper())
 
+        self._step_control_mode = True
         self._direction = 1
 
     def _set_handle_and_on_attach_handler(self, stepper_handle):
@@ -105,10 +107,15 @@ class Stepper(Phidget):
         return self._stepper_handle.getMaxAcceleration()
 
     def step_control_mode(self):
-        return self._stepper_handle.getControlMode() == StepperControlMode.CONTROL_MODE_STEP
+        return self._step_control_mode
 
     def set_step_control_mode(self):
-        self._stepper_handle.setControlMode(StepperControlMode.CONTROL_MODE_STEP)
+        self._stepper_handle.setControlMode(Phidget22.Devices.Stepper.StepperControlMode.CONTROL_MODE_STEP)
+        self._step_control_mode = True
+
+    def set_velocity_control_mode(self):
+        self._stepper_handle.setControlMode(Phidget22.Devices.Stepper.StepperControlMode.CONTROL_MODE_RUN)
+        self._step_control_mode = False
 
     def get_current_limit(self):
         return self._stepper_handle.getCurrentLimit()
@@ -174,7 +181,10 @@ class Stepper(Phidget):
         return self._direction * self._stepper_handle.getVelocity()
 
     def set_velocity_limit(self, velocity_limit):
-        self._stepper_handle.setVelocityLimit(velocity_limit)
+        if self.step_control_mode():
+            self._stepper_handle.setVelocityLimit(abs(velocity_limit))
+        else:
+            self._stepper_handle.setVelocityLimit(self._direction * velocity_limit)
 
     def get_min_velocity_limit(self):
         return self._stepper_handle.getMinVelocityLimit()

@@ -34,8 +34,7 @@ class StepperJointInfo():
         self.stepper_info = StepperInfo()
         self.home_switch_info = DigitalInputInfo()
         self.limit_switch_info = None
-        self.home_velocity_limit = 1000
-        self.home_target_position = -10000
+        self.home_velocity_limit = -1000
         self.deactivate_home_switch_target_position = 200
 
 class StepperJoint:
@@ -99,10 +98,12 @@ class StepperJoint:
     def home(self):
         self.homed = False
         self.homing = True
-        self.stepper.set_velocity_limit(self.stepper_joint_info.home_velocity_limit)
+        self.logger.info('homing {0}'.format(self.name))
         if not self.home_switch.is_active():
-            self.stepper.set_target_position(self.stepper_joint_info.home_target_position)
+            self.stepper.set_velocity_control_mode()
+            self.stepper.set_velocity_limit(self.stepper_joint_info.home_velocity_limit)
         else:
+            self.stepper.set_step_control_mode()
             self.stepper.set_target_position(self.stepper_joint_info.deactivate_home_switch_target_position)
             self.home()
 
@@ -114,6 +115,7 @@ class StepperJoint:
             self.homed = True
             self.homing = False
             self.stepper.stop()
+            self.stepper.set_step_control_mode()
             self.stepper.add_position_offset(-self.stepper.get_position())
             self.stepper.set_target_position(0.0)
             self.stepper.set_velocity_limit(self.stepper_joint_info.stepper_info.velocity_limit)
