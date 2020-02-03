@@ -98,7 +98,6 @@ class StepperJoint:
     def home(self):
         self.homed = False
         self.homing = True
-        self.logger.info('homing {0}'.format(self.name))
         if not self.home_switch.is_active():
             self.stepper.set_velocity_control_mode()
             self.stepper.set_velocity_limit(self.stepper_joint_info.home_velocity_limit)
