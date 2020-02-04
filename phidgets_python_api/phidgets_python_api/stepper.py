@@ -106,7 +106,7 @@ class Stepper(Phidget):
     def get_max_acceleration(self):
         return self._stepper_handle.getMaxAcceleration()
 
-    def step_control_mode(self):
+    def in_step_control_mode(self):
         return self._step_control_mode
 
     def set_step_control_mode(self):
@@ -175,13 +175,14 @@ class Stepper(Phidget):
         return self._direction * self._stepper_handle.getTargetPosition()
 
     def set_target_position(self, target_position):
-        self._stepper_handle.setTargetPosition(self._direction * target_position)
+        if self.in_step_control_mode():
+            self._stepper_handle.setTargetPosition(self._direction * target_position)
 
     def get_velocity(self):
         return self._direction * self._stepper_handle.getVelocity()
 
     def set_velocity_limit(self, velocity_limit):
-        if self.step_control_mode():
+        if self.in_step_control_mode():
             self._stepper_handle.setVelocityLimit(abs(velocity_limit))
         else:
             self._stepper_handle.setVelocityLimit(self._direction * velocity_limit)

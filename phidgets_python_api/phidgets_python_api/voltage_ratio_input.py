@@ -34,9 +34,9 @@ from phidgets_python_api.phidget import Phidget, PhidgetInfo
 class VoltageRatioInputInfo():
     def __init__(self):
         self.phidget_info = PhidgetInfo()
-        self.bridge_gain = Phidget22.Phidget.BridgeGain.BRIDGE_GAIN_1
+        self.bridge_gain = Phidget22.Devices.VoltageRatioInput.BridgeGain.BRIDGE_GAIN_1
         self.data_interval = 100
-        self.sensor_type = Phidget22.Phidget.VoltageRatioSensorType.SENSOR_TYPE_VOLTAGERATIO
+        self.sensor_type = Phidget22.Devices.VoltageRatioInput.VoltageRatioSensorType.SENSOR_TYPE_VOLTAGERATIO
         self.sensor_value_change_trigger = None
         self.voltage_ratio_change_trigger = None
 
@@ -54,13 +54,13 @@ class VoltageRatioInput(Phidget):
 
     def _on_attach_handler(self, handle):
         super()._on_attach_handler(handle)
-        self.set_bridge_gain(self.voltage_ratio_info.bridge_gain)
-        self.set_data_interval(self.voltage_ratio_info.data_interval)
-        self.set_sensor_type(self.voltage_ratio_info.sensor_type)
-        if self.voltage_ratio_info.sensor_value_change_trigger:
-            self.set_sensor_value_change_trigger(self.voltage_ratio_info.sensor_value_change_trigger)
-        if self.voltage_ratio_info.voltage_ratio_change_trigger:
-            self.set_voltage_ratio_change_trigger(self.voltage_ratio_info.voltage_ratio_change_trigger)
+        self.set_bridge_gain(self.voltage_ratio_input_info.bridge_gain)
+        self.set_data_interval(self.voltage_ratio_input_info.data_interval)
+        # self.set_sensor_type(self.voltage_ratio_input_info.sensor_type)
+        if self.voltage_ratio_input_info.sensor_value_change_trigger:
+            self.set_sensor_value_change_trigger(self.voltage_ratio_input_info.sensor_value_change_trigger)
+        if self.voltage_ratio_input_info.voltage_ratio_change_trigger:
+            self.set_voltage_ratio_change_trigger(self.voltage_ratio_input_info.voltage_ratio_change_trigger)
 
     def close(self):
         self.set_on_sensor_change_handler(None)
@@ -90,7 +90,7 @@ class VoltageRatioInput(Phidget):
     def set_bridge_gain(self, bridge_gain):
         self._voltage_ratio_input_handle.setBridgeGain(bridge_gain)
 
-    def get_gain(self):
+    def get_bridge_gain(self):
         return self._voltage_ratio_input_handle.getBridgeGain()
 
     def get_data_interval(self):
