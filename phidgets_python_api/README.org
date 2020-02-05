@@ -1,0 +1,15 @@
+#+TITLE: Phidgets Python API
+#+AUTHOR: Peter Polidoro
+#+EMAIL: peterpolidoro@gmail.com
+
+* Library Information
+  - Name :: Phidgets Python API
+  - Version :: 1.0.0
+  - License :: BSD
+  - URL :: https://github.com/janelia-ros/phidgets_python_drivers_ros
+  - Author :: Peter Polidoro
+  - Email :: peterpolidoro@gmail.com
+
+** Description
+
+   This is the Phidgets Python API.
