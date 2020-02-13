@@ -80,3 +80,15 @@ class DigitalOutput(Phidget):
             return self.set_state(False)
         else:
             return not self.set_state(True)
+
+    def get_duty_cycle(self):
+        return self._digital_output_handle.getDutyCycle()
+
+    def set_duty_cycle(self, duty_cycle):
+        return self._digital_output_handle.setDutyCycle(duty_cycle)
+
+    def get_min_duty_cycle(self):
+        return self._digital_output_handle.getMinDutyCycle()
+
+    def get_max_duty_cycle(self):
+        return self._digital_output_handle.getMaxDutyCycle()
