@@ -41,21 +41,21 @@ class DigitalOutput(Phidget):
         super().__init__(digital_output_info.phidget_info, name, logger)
         self.digital_output_info = digital_output_info
 
-        self._set_handle_and_on_attach_handler(Phidget22.Devices.DigitalOutput.DigitalOutput())
-
-    def _set_handle_and_on_attach_handler(self, digital_output_handle):
-        super()._set_handle_and_on_attach_handler(digital_output_handle)
-        self._digital_output_handle = digital_output_handle
+        self.set_handle(Phidget22.Devices.DigitalOutput.DigitalOutput())
         self.set_on_attach_handler(self._on_attach_handler)
+
+    def set_handle(self, digital_output_handle):
+        super().set_handle(digital_output_handle)
+        self._digital_output_handle = digital_output_handle
+
+    def has_handle(self, handle):
+        return self._digital_output_handle == handle
 
     def _on_attach_handler(self, handle):
         super()._on_attach_handler(handle)
 
     def close(self):
         super().close()
-
-    def has_handle(self, handle):
-        return self._digital_output_handle == handle
 
     def get_state(self):
         return self._digital_output_handle.getState()

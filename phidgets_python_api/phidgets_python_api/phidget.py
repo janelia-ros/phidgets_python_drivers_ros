@@ -42,11 +42,13 @@ class Phidget:
         self.name = name
         self.logger = logger
 
-        self._set_handle_and_on_attach_handler(None)
+        self.set_handle(None)
 
-    def _set_handle_and_on_attach_handler(self, phidget_handle):
+    def set_handle(self, phidget_handle):
         self._phidget_handle = phidget_handle
-        self.set_on_attach_handler(self._on_attach_handler)
+
+    def has_handle(self, handle):
+        return self._phidget_handle == handle
 
     def _on_attach_handler(self, handle):
         self.phidget_info.serial_number = self._phidget_handle.getDeviceSerialNumber()

@@ -45,12 +45,15 @@ class VoltageRatioInput(Phidget):
         super().__init__(voltage_ratio_input_info.phidget_info, name, logger)
         self.voltage_ratio_input_info = voltage_ratio_input_info
 
-        self._set_handle_and_on_attach_handler(Phidget22.Devices.VoltageRatioInput.VoltageRatioInput())
-
-    def _set_handle_and_on_attach_handler(self, voltage_ratio_input_handle):
-        super()._set_handle_and_on_attach_handler(voltage_ratio_input_handle)
-        self._voltage_ratio_input_handle = voltage_ratio_input_handle
+        self.set_handle(Phidget22.Devices.VoltageRatioInput.VoltageRatioInput())
         self.set_on_attach_handler(self._on_attach_handler)
+
+    def set_handle(self, voltage_ratio_input_handle):
+        super().set_handle(voltage_ratio_input_handle)
+        self._voltage_ratio_input_handle = voltage_ratio_input_handle
+
+    def has_handle(self, handle):
+        return self._voltage_ratio_input_handle == handle
 
     def _on_attach_handler(self, handle):
         super()._on_attach_handler(handle)
@@ -66,9 +69,6 @@ class VoltageRatioInput(Phidget):
         self.set_on_sensor_change_handler(None)
         self.set_on_voltage_ratio_change_handler(None)
         super().close()
-
-    def has_handle(self, handle):
-        return self._voltage_ratio_input_handle == handle
 
     # def on_sensor_change_handler(self, handle, sensor_value, sensor_unit):
     def set_on_sensor_change_handler(self, on_sensor_change_handler):

@@ -41,12 +41,15 @@ class DigitalInput(Phidget):
         super().__init__(digital_input_info.phidget_info, name, logger)
         self.digital_input_info = digital_input_info
 
-        self._set_handle_and_on_attach_handler(Phidget22.Devices.DigitalInput.DigitalInput())
-
-    def _set_handle_and_on_attach_handler(self, digital_input_handle):
-        super()._set_handle_and_on_attach_handler(digital_input_handle)
-        self._digital_input_handle = digital_input_handle
+        self.set_handle(Phidget22.Devices.DigitalInput.DigitalInput())
         self.set_on_attach_handler(self._on_attach_handler)
+
+    def set_handle(self, digital_input_handle):
+        super().set_handle(digital_input_handle)
+        self._digital_input_handle = digital_input_handle
+
+    def has_handle(self, handle):
+        return self._digital_input_handle == handle
 
     def _on_attach_handler(self, handle):
         super()._on_attach_handler(handle)
@@ -54,9 +57,6 @@ class DigitalInput(Phidget):
     def close(self):
         self.set_on_state_change_handler(None)
         super().close()
-
-    def has_handle(self, handle):
-        return self._digital_input_handle == handle
 
     # def on_state_change_handler(self, handle, state):
     def set_on_state_change_handler(self, on_state_change_handler):
