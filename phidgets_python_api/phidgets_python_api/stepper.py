@@ -45,8 +45,8 @@ class StepperInfo():
         self.invert_direction = False
 
 class Stepper(Phidget):
-    def __init__(self, stepper_info, name, logger):
-        super().__init__(stepper_info.phidget_info, name, logger)
+    def __init__(self, name, logger, stepper_info):
+        super().__init__(name, logger, stepper_info.phidget_info)
         self.stepper_info = stepper_info
 
         self.set_handle(Phidget22.Devices.Stepper.Stepper())

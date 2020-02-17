@@ -37,8 +37,8 @@ class DigitalInputInfo():
         self.active_low = True
 
 class DigitalInput(Phidget):
-    def __init__(self, digital_input_info, name, logger):
-        super().__init__(digital_input_info.phidget_info, name, logger)
+    def __init__(self, name, logger, digital_input_info):
+        super().__init__(name, logger, digital_input_info.phidget_info)
         self.digital_input_info = digital_input_info
 
         self.set_handle(Phidget22.Devices.DigitalInput.DigitalInput())

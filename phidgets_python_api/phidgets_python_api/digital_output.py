@@ -37,8 +37,8 @@ class DigitalOutputInfo():
         self.active_high = True
 
 class DigitalOutput(Phidget):
-    def __init__(self, digital_output_info, name, logger):
-        super().__init__(digital_output_info.phidget_info, name, logger)
+    def __init__(self, name, logger, digital_output_info):
+        super().__init__(name, logger, digital_output_info.phidget_info)
         self.digital_output_info = digital_output_info
 
         self.set_handle(Phidget22.Devices.DigitalOutput.DigitalOutput())

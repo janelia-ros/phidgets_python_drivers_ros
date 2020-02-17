@@ -28,6 +28,8 @@
 import Phidget22
 from Phidget22.PhidgetException import *
 
+from abc import ABC, abstractmethod
+
 class PhidgetInfo():
     def __init__(self):
         self.serial_number = Phidget22.Phidget.Phidget.ANY_SERIAL_NUMBER
@@ -36,11 +38,39 @@ class PhidgetInfo():
         self.hub_port = Phidget22.Phidget.Phidget.ANY_HUB_PORT
         self.is_hub_port_device = False
 
-class Phidget:
-    def __init__(self, phidget_info, name, logger):
-        self.phidget_info = phidget_info
+class PhidgetComponent(ABC):
+    def __init__(self, name, logger):
         self.name = name
         self.logger = logger
+
+    @abstractmethod
+    def has_handle(self, handle):
+        pass
+
+    @abstractmethod
+    def set_on_attach_handler(self, on_attach_handler):
+        pass
+
+    @abstractmethod
+    def _on_attach_handler(self, handle):
+        pass
+
+    @abstractmethod
+    def is_attached(self):
+        pass
+
+    @abstractmethod
+    def open(self):
+        pass
+
+    @abstractmethod
+    def close(self):
+        pass
+
+class Phidget(PhidgetComponent):
+    def __init__(self, name, logger, phidget_info):
+        super().__init__(name, logger)
+        self.phidget_info = phidget_info
 
         self.set_handle(None)
 
@@ -49,6 +79,11 @@ class Phidget:
 
     def has_handle(self, handle):
         return self._phidget_handle == handle
+
+    # def on_attach_handler(self, handle):
+    def set_on_attach_handler(self, on_attach_handler):
+        if self._phidget_handle is not None:
+            self._phidget_handle.setOnAttachHandler(on_attach_handler)
 
     def _on_attach_handler(self, handle):
         self.phidget_info.serial_number = self._phidget_handle.getDeviceSerialNumber()
@@ -64,6 +99,11 @@ class Phidget:
         msg = msg.format(self.name, self.phidget_info)
         self.logger.info(msg)
 
+    def is_attached(self):
+        if self._phidget_handle is None:
+            return False
+        return self._phidget_handle.getAttached()
+
     def open(self):
         self._phidget_handle.setDeviceSerialNumber(self.phidget_info.serial_number)
         if self.phidget_info.label:
@@ -78,16 +118,6 @@ class Phidget:
         if self._phidget_handle is not None:
             self._phidget_handle.close()
 
-    def is_attached(self):
-        if self._phidget_handle is None:
-            return False
-        return self._phidget_handle.getAttached()
-
-    # def on_attach_handler(self, handle):
-    def set_on_attach_handler(self, on_attach_handler):
-        if self._phidget_handle is not None:
-            self._phidget_handle.setOnAttachHandler(on_attach_handler)
-
     # def on_detach_handler(self, handle):
     def set_on_detach_handler(self, on_detach_handler):
         if self._phidget_handle is not None:
@@ -97,3 +127,46 @@ class Phidget:
     def set_on_error_handler(self, on_error_handler):
         if self._phidget_handle is not None:
             self._phidget_handle.setOnErrorHandler(on_error_handler)
+
+class PhidgetComposite(PhidgetComponent):
+    def __init__(self, name, logger):
+        super().__init__(name, logger)
+
+        self._components = []
+
+    def add(self, component):
+        self._components.append(component)
+
+    def has_handle(self, handle):
+        has_handle = False
+        for component in self._components:
+            if component.has_handle(handle):
+                has_handle = True
+                break
+        return has_handle
+
+    def set_on_attach_handler(self, on_attach_handler):
+        for component in self._components:
+            component.set_on_attach_handler(on_attach_handler)
+
+    def _on_attach_handler(self, handle):
+        for component in self._components:
+            if component.has_handle(handle):
+                component._on_attach_handler(handle)
+                break
+
+    def is_attached(self):
+        is_attached = True
+        for component in self._components:
+            if not component.is_attached():
+                is_attached = False
+                break
+        return is_attached
+
+    def open(self):
+        for component in self._components:
+            component.open()
+
+    def close(self):
+        for component in self._components:
+            component.close()

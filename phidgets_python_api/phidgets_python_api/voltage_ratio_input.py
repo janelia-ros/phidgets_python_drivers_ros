@@ -41,8 +41,8 @@ class VoltageRatioInputInfo():
         self.voltage_ratio_change_trigger = None
 
 class VoltageRatioInput(Phidget):
-    def __init__(self, voltage_ratio_input_info, name, logger):
-        super().__init__(voltage_ratio_input_info.phidget_info, name, logger)
+    def __init__(self, name, logger, voltage_ratio_input_info):
+        super().__init__(name, logger, voltage_ratio_input_info.phidget_info)
         self.voltage_ratio_input_info = voltage_ratio_input_info
 
         self.set_handle(Phidget22.Devices.VoltageRatioInput.VoltageRatioInput())

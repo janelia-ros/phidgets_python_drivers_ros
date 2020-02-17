@@ -26,6 +26,7 @@
 # POSSIBILITY OF SUCH DAMAGE.
 
 from Phidget22.PhidgetException import *
+from phidgets_python_api.phidget import PhidgetComposite
 from phidgets_python_api.stepper import Stepper, StepperInfo
 from phidgets_python_api.digital_input import DigitalInput, DigitalInputInfo
 
@@ -37,19 +38,23 @@ class StepperJointInfo():
         self.home_velocity_limit = -1000
         self.deactivate_home_switch_target_position = 200
 
-class StepperJoint:
-    def __init__(self, stepper_joint_info, name, logger):
+class StepperJoint(PhidgetComposite):
+    def __init__(self, name, logger, stepper_joint_info)
+        super().__init__(name, logger)
         self.stepper_joint_info = stepper_joint_info
-        self.name = name
-        self.logger = logger
 
-        self.stepper = Stepper(self.stepper_joint_info.stepper_info, self.name + '_stepper', self.logger)
+        self.stepper_name = self.name + '_stepper'
+        self.stepper = Stepper(self.stepper_name, self.logger, self.stepper_joint_info.stepper_info)
+        self.add(self.stepper_name, self.stepper)
 
-        self.home_switch = DigitalInput(self.stepper_joint_info.home_switch_info, self.name + '_home_switch', self.logger)
+        self.home_switch_name = self.name + '_home_switch'
+        self.home_switch = DigitalInput(self.stepper_joint_info.home_switch_info, self.home_switch_name, self.logger)
+        self.add(self.home_switch_name, self.home_switch)
         self.home_switch.set_on_state_change_handler(self._home_switch_handler)
 
+        self.limit_switch_name = self.name + '_limit_switch'
         if self.stepper_joint_info.limit_switch_info is not None:
-            self.limit_switch = DigitalInput(self.stepper_joint_info.limit_switch_info, self.name + '_limit_switch', self.logger)
+            self.limit_switch = DigitalInput(self.stepper_joint_info.limit_switch_info, self.limit_switch_name, self.logger)
             self.set_limit_switch_handler_to_disabled()
         else:
             self.limit_switch = None
@@ -57,18 +62,6 @@ class StepperJoint:
         self.homed = False
         self.homing = False
         self._on_homed_handler = None
-
-    def open(self):
-        self.stepper.open()
-        self.home_switch.open()
-        if self.limit_switch is not None:
-            self.limit_switch.open()
-
-    def close(self):
-        self.stepper.close()
-        self.home_switch.close()
-        if self.limit_switch is not None:
-            self.limit_switch.close()
 
     def has_handle(self, handle):
         if self.limit_switch is not None:
@@ -95,6 +88,18 @@ class StepperJoint:
             return self.stepper.is_attached() and self.home_switch.is_attached() and self.limit_switch.is_attached()
         else:
             return self.stepper.is_attached() and self.home_switch.is_attached()
+
+    def open(self):
+        self.stepper.open()
+        self.home_switch.open()
+        if self.limit_switch is not None:
+            self.limit_switch.open()
+
+    def close(self):
+        self.stepper.close()
+        self.home_switch.close()
+        if self.limit_switch is not None:
+            self.limit_switch.close()
 
     def home(self):
         self.homed = False
