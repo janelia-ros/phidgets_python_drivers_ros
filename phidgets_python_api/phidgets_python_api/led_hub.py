@@ -26,6 +26,7 @@
 # POSSIBILITY OF SUCH DAMAGE.
 
 from Phidget22.PhidgetException import *
+from phidgets_python_api.phidget import PhidgetComposite
 from phidgets_python_api.digital_output import DigitalOutput, DigitalOutputInfo
 
 class LedHubInfo():
@@ -37,39 +38,17 @@ class LedHubInfo():
             led_info.phidget_info.label = 'led_hub'
             self.leds_info.append(led_info)
 
-class LedHub:
-    def __init__(self, led_hub_info, name, logger):
+class LedHub(PhidgetComposite):
+    def __init__(self, name, logger, led_hub_info):
+        super().__init__(name, logger)
         self.led_hub_info = led_hub_info
-        self.name = name
-        self.logger = logger
 
         self.leds = []
         for i in range(self.led_hub_info.led_count):
-            led = DigitalOutput(self.led_hub_info.leds_info[i], self.name + '_' + str(i), self.logger)
-
-    def open(self):
-        [led.open() for led in self.leds]
-
-    def close(self):
-        [led.close() for led in self.leds]
-
-    def has_handle(self, handle):
-        for led in self.leds:
-            if led.has_handle(handle):
-                return True
-        return False
-
-    def set_on_attach_handler(self, on_attach_handler):
-        [led.set_on_attach_handler(on_attach_handler) for led in self.leds]
-
-    def _on_attach_handler(self, handle):
-        [led._on_attach_handler(handle) for led in self.leds if led.has_handle(handle)]
-
-    def is_attached(self):
-        for led in self.leds:
-            if not led.is_attached():
-                return False
-        return True
+            led_name = self.name + '_' + str(i)
+            led = DigitalOutput(led_name, self.logger, self.led_hub_info.leds_info[i])
+            self.add(led)
+            self.leds.append(led)
 
     def turn_on_led(self, led_index):
         self.leds[led_index].activate()
